@@ -230,7 +230,7 @@ function archimedes_build_report() {
 
   $owl->createField('field_site_env', $environment['label']);
 
-  $ignore = array('#(\w*/)*sites/\w*/files#', '#.*\.(git|svn|bzr|cvs)/.*#');
+  $ignore = array('#(\w*/)*sites/[\w\.]*/files#', '#.*\.(git|svn|bzr|cvs)/.*#');
   
   // The point of the directory hash is to record the state of the deployed code base.
   // If the code base changes, then the site could have been redeployed or hacked! However,
