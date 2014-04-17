@@ -23,7 +23,7 @@ class ArchimedesDrupalUnsafeCollection {
    * Collect hostname information from the server running this Drupal install.
    */
   public function servername() {
-    $hostname = unix_exec("hostname -f");
+    $hostname = $this->unix_exec("hostname -f");
     $values = array();
     $values[] = archimedes_value($hostname,'nodereference')
       ->addNode(array('title' => $hostname, 'type' => 'host'));
@@ -94,5 +94,5 @@ class ArchimedesDrupalUnsafeCollection {
     exec($command . ' 2>&1', $output, $result);
 
     return $output[0];
-  } 
+  }
 }
