@@ -226,7 +226,8 @@ function archimedes_build_report() {
   $owl->createField('field_drupal_theme', $themes)
       ->invokeFacet();
 
-  $environment = array_shift(environment_current(NULL,NULL,TRUE));
+  $environment_current = environment_current(NULL, NULL, TRUE);
+  $environment = array_shift($environment_current);
 
   $owl->createField('field_site_env', $environment['label']);
 
