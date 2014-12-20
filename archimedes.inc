@@ -56,7 +56,7 @@ function archimedes_get_token() {
   * Send a report to the Archimedes server via email or HTTP.
   *
   * Doesn't use Drupal's messaging system because the communication
-  * with the server is independant of Drupal.
+  * with the server is independent of Drupal.
   */
 function archimedes_send_report() {
   global $base_url;
@@ -119,7 +119,7 @@ function archimedes_build_report() {
     $owl->createField('body', variable_get('site_mission', 'No description has been set.'));
   }
 
-  // If Drush (or some other CLI passed method) is used to 
+  // If Drush (or some other CLI passed method) is used to
   // run cron. You'll need to ensure a correct servername is
   // passed to PHP. With drush, use -l http://mysite.com.
   $owl->createField('field_servername', url('', array('absolute' => 1)));
@@ -145,7 +145,7 @@ function archimedes_build_report() {
   }
 
   foreach ($connections as $url) {
-    //format into url like drupal 6
+    // Format as URL for parsing (like Drupal6 URL).
     $db_url = $url['driver'] . '://' . $url['username'] . ':' . $url['password'] . '@' . $url['host'] . '/' . $url['database'];
     $db = parse_url($db_url);
     if (!isset($database_name)) {
@@ -232,7 +232,7 @@ function archimedes_build_report() {
   $owl->createField('field_site_env', $environment['label']);
 
   $ignore = array('#(\w*/)*sites/[\w\.]*/files#', '#.*\.(git|svn|bzr|cvs)/.*#');
-  
+
   // The point of the directory hash is to record the state of the deployed code base.
   // If the code base changes, then the site could have been redeployed or hacked! However,
   // in development scenarios, the code changes very frequently so we don't care to change
@@ -249,8 +249,6 @@ function archimedes_build_report() {
 
   // Allow other modules to add data via hook_archimedes.
   drupal_alter('archimedes', $owl);
-  
+
   return $owl;
 } // archimedes_collect()
-
-
