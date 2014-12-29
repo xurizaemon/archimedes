@@ -111,8 +111,7 @@ class ArchimedesDrupalUnsafeCollection {
     }
     $command = call_user_func_array('sprintf', $args);
 
-    exec($command . ' 2>&1', $output, $result);
-
+    exec($command . ' 2>/dev/null', $output, $result);
     return $output[0];
   }
 }
