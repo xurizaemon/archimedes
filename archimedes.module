@@ -230,6 +230,11 @@ function archimedes_collect() {
   $owl->createField('field_users', array($value))
     ->invokeFacet();
 
+  $dataSize = preg_split('/[\s]+/', archimedes_shell_exec("du -bsL " . file_directory_path()));
+  $rootSize = preg_split('/[\s]+/', archimedes_shell_exec("du -bsL " . realpath('.'.base_path()).'/'));
+  $owl->createField('field_sitedata', $dataSize[0]);
+  $owl->createField('field_sitesize', $rootSize[0] - $dataSize[0]);
+
 
   // Graphable data.
   $users = archimedes_value(db_result(db_query("SELECT COUNT(uid) FROM {users}"))-1, 'dataset')->setTitle('Users');
