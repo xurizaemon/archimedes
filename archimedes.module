@@ -174,52 +174,62 @@ function archimedes_collect() {
 
   $hostname = archimedes_shell_exec("hostname -f");
   $values = array();
-  $values[] = archimedes_value($hostname,'nodereference')->addNode(array('title' => $hostname, 'type' => 'host'));
+  $values[] = archimedes_value($hostname,'nodereference')
+    ->addNode(array('title' => $hostname, 'type' => 'host'));
   $owl->createField('field_webserver', $values)
-      ->invokeFacet();
+    ->invokeFacet();
   $owl->createField('field_webroot', 'file://' . $root);
 
   $urls = array();
   if (!is_array($db_url)) {
-    $urls[] = $db_url;
-  } else {
+    $urls['default'] = $db_url;
+  }
+  else {
     $urls = $db_url;
   }
-  $values = array();
-  foreach($urls as $url) {
-    $db = parse_url($url);
-    $dbName = substr($db['path'],1);
-    $dbhost = ($db['host'] == 'localhost' || $db['host'] == '127.0.0.1') ? $hostname : $db['host'];
-    $values[] = archimedes_value($dbhost,'nodereference')->addNode(array('title' => $dbhost, 'type' => 'host'));
-  }
 
-  $owl->createField('field_dbhost', $values)
-      ->invokeFacet();
-  $owl->createField('field_dbname', $dbName);
+  // Database names and sizes.
+  $values = array();
+  $db_size = 0;
+  foreach($urls as $key => $url) {
+    $db = parse_url($url);
+    $dbnames[] = substr($db['path'],1);
+    $dbhost = ($db['host'] == 'localhost' || $db['host'] == '127.0.0.1') ? $hostname : $db['host'];
+    $dbhosts[] = archimedes_value($dbhost,'nodereference')
+      ->addNode(array('title' => $dbhost, 'type' => 'host'));
+
+    switch ($db_type) {
+      case 'pgsql':
+        db_set_active($key);
+        $db_size += db_result(db_query("SELECT pg_database_size('" . $dbName . "')"));
+        db_set_active();
+        break;
+
+      case 'mysql':
+      case 'mysqli':
+        db_set_active($key);
+        $rs = db_query("SHOW TABLE STATUS");
+        while ($row = db_fetch_object($rs)) {
+          $db_size += ($row->Data_length + $row->Index_length);
+        }
+        db_set_active();
+        break;
+    }
+  }
+  $owl->createField('field_db_size', $db_size);
+  $owl->createField('field_dbhost', $dbhosts)
+    ->invokeFacet();
+  $owl->createField('field_dbname', $dbnames);
 
   $user = array(
     'type' => 'mail',
     'mailto' => 'mailto:' . db_result(db_query("SELECT u.mail FROM {users} u WHERE uid = 1 LIMIT 1")),
   );
   $value = archimedes_value($user['mailto'],'userreference')
-            ->addUser($user);
+    ->addUser($user);
   $owl->createField('field_users', array($value))
-      ->invokeFacet();
+    ->invokeFacet();
 
-  switch ($db_type) {
-    case 'pgsql':
-      $owl->createField('field_db_size', db_result(db_query("SELECT pg_database_size('" . $dbName . "')")));
-      break;
-    case 'mysql':
-    case 'mysqli':
-      $rs = db_query("SHOW TABLE STATUS");
-      $size = 0;
-      while ($row = db_fetch_object($rs)) {
-        $size += ($row->Data_length + $row->Index_length);
-      }
-      $owl->createField('field_db_size', $size);
-    break;
-  }
 
   // Graphable data.
   $users = archimedes_value(db_result(db_query("SELECT COUNT(uid) FROM {users}"))-1, 'dataset')->setTitle('Users');
