@@ -99,6 +99,7 @@ function archimedes_send_report() {
 function archimedes_build_report() {
   global $databases;
 
+  archimedes_load_library();
   $owl = new Archimedes('drupal', variable_get('site_mail', FALSE), archimedes_get_token());
 
   $owl->createField('title', variable_get('site_name', "Drupal"));
