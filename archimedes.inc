@@ -241,7 +241,7 @@ function archimedes_build_report() {
   $owl->createField('field_directory_hash', $dir_hash);
 
   if (variable_get('archimedes_use_unsafe_collection', FALSE)) {
-    module_load('inc', 'archimedes', 'archimedes.unsafe');
+    module_load_include('inc', 'archimedes', 'archimedes.unsafe');
     $collect = new ArchimedesDrupalUnsafeCollection($owl);
     $collect->servername()
             ->database_size()
