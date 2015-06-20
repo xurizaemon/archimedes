@@ -68,6 +68,17 @@ class ArchimedesDrupalUnsafeCollection {
           $this->archimedes
             ->createField('field_db_size', $size);
         }
+        break;
+
+      case 'sqlite':
+        $page_count = db_query('PRAGMA page_count')->fetchField();
+        $page_size = db_query('PRAGMA page_size')->fetchField();
+        $size = $page_count * $page_size;
+        if ($size) {
+          $this->archimedes
+            ->createField('field_db_size', $size);
+        }
+
       break;
 
     }
@@ -100,8 +111,7 @@ class ArchimedesDrupalUnsafeCollection {
     }
     $command = call_user_func_array('sprintf', $args);
 
-    exec($command . ' 2>&1', $output, $result);
-
+    exec($command . ' 2>/dev/null', $output, $result);
     return $output[0];
   }
 }
