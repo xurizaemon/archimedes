@@ -56,7 +56,7 @@ function archimedes_get_token() {
   * Send a report to the Archimedes server via email or HTTP.
   *
   * Doesn't use Drupal's messaging system because the communication
-  * with the server is independant of Drupal.
+  * with the server is independent of Drupal.
   */
 function archimedes_send_report() {
   global $base_url;
@@ -119,7 +119,7 @@ function archimedes_build_report() {
     $owl->createField('body', variable_get('site_mission', 'No description has been set.'));
   }
 
-  // If Drush (or some other CLI passed method) is used to 
+  // If Drush (or some other CLI passed method) is used to
   // run cron. You'll need to ensure a correct servername is
   // passed to PHP. With drush, use -l http://mysite.com.
   $owl->createField('field_servername', url('', array('absolute' => 1)));
@@ -128,36 +128,38 @@ function archimedes_build_report() {
   $owl->createField('field_webroot', DRUPAL_ROOT);
 
   // Build an understanding of the databases Drupal
-  // can connect too. At this stage, Archimedes only
-  // reports on the default connections, i.e, master
-  // slave databases for Drupal only.
+  // can connect to.
   $values = array();
   $connections = array();
-  foreach($databases['default'] as $key => $connection) {
-    if ($key == 'slave') {
-      foreach ($connection as $slave) {
-        $connections[] = $slave;
+  $database_names = array();
+  foreach ($databases as $key_conn => $conn) {
+    foreach($databases[$key_conn] as $key_target => $connection) {
+      if ($key_target == 'slave') {
+        foreach ($connection as $slave) {
+          $slave['connection'] = $key_conn;
+          $connections[] = $slave;
+        }
       }
-    }
-    else {
-      $connections[] = $connection;
+      else {
+        $connection['connection'] = $key_conn;
+        $connections[] = $connection;
+      }
     }
   }
 
   foreach ($connections as $url) {
-    //format into url like drupal 6
+    // Format as URL for parsing (like Drupal6 URL).
     $db_url = $url['driver'] . '://' . $url['username'] . ':' . $url['password'] . '@' . $url['host'] . '/' . $url['database'];
     $db = parse_url($db_url);
     if (!isset($database_name)) {
-      $database_name = substr($db['path'],1);
-      $owl->createField('field_dbname', $database_name);
+      $database_names[] = substr($db['path'],1);
     }
     $dbhost = ($db['host'] == 'localhost' || $db['host'] == '127.0.0.1') ? 'localhost' : $db['host'];
     $values[] = archimedes_value($dbhost,'nodereference')->addNode(array('title' => $dbhost, 'type' => 'host'));
   }
 
-  $owl->createField('field_dbhost', $values)
-      ->invokeFacet();
+  $owl->createField('field_dbname', $database_names);
+  $owl->createField('field_dbhost', $values)->invokeFacet();
 
   $user = array(
     'type' => 'mail',
@@ -226,12 +228,13 @@ function archimedes_build_report() {
   $owl->createField('field_drupal_theme', $themes)
       ->invokeFacet();
 
-  $environment = array_shift(environment_current(NULL,NULL,TRUE));
+  $environment_current = environment_current(NULL, NULL, TRUE);
+  $environment = array_shift($environment_current);
 
   $owl->createField('field_site_env', $environment['label']);
 
   $ignore = array('#(\w*/)*sites/[\w\.]*/files#', '#.*\.(git|svn|bzr|cvs)/.*#');
-  
+
   // The point of the directory hash is to record the state of the deployed code base.
   // If the code base changes, then the site could have been redeployed or hacked! However,
   // in development scenarios, the code changes very frequently so we don't care to change
@@ -248,8 +251,6 @@ function archimedes_build_report() {
 
   // Allow other modules to add data via hook_archimedes.
   drupal_alter('archimedes', $owl);
-  
+
   return $owl;
 } // archimedes_collect()
-
-

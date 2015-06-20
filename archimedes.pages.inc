@@ -6,27 +6,37 @@
 function archimedes_admin() {
   $form = array();
 
-  $form['archimedes_server_email'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Server email address'),
-    '#default_value' => variable_get('archimedes_server_email', 'archimedes@server.com'),
-    '#description' => t('Set Archimedes server email address.'),
-  );
-
-  $form['archimedes_server_url'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Archimedes Server URL',
-    '#default_value' =>  variable_get('archimedes_server_url', FALSE),
-    '#description' => t("This is required if you wish to use a direct update method to the archimedes server apposed to using email."),
-  );
-
   $form['archimedes_send_method'] = array(
     '#type' => 'radios',
-    '#title' => 'Archimedes Send Method',
+    '#title' => 'Submission Method',
     '#default_value' => variable_get('archimedes_send_method', 'postXML'),
     '#options' => array(
       'sendXML' => 'Email',
       'postXML' => 'HTTP',
+    ),
+  );
+
+  $form['archimedes_server_email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Submission address'),
+    '#default_value' => variable_get('archimedes_server_email', 'archimedes@server.com'),
+    '#description' => t('Submit Archimedes reports to this email address.'),
+    '#states' => array(
+      'visible' => array(   // action to take.
+        ':input[name=archimedes_send_method]' => array('value' => 'sendXML')
+      ),
+    ),
+  );
+
+  $form['archimedes_server_url'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Submission URL',
+    '#default_value' =>  variable_get('archimedes_server_url', FALSE),
+    '#description' => t("Submit Archimedes reports to this URL."),
+    '#states' => array(
+      'visible' => array(   // action to take.
+        ':input[name=archimedes_send_method]' => array('value' => 'postXML')
+      ),
     ),
   );
 
@@ -137,7 +147,7 @@ function archimedes_out() {
 //  $output = '<p>' . t('This page shows the current output from of Archimedes Client for this website. It will not necessarily match what is known by the server.'). '</p>';
 //  return $output . $table . $modules . $themes;
   return theme('table', $table_vars);
-} 
+}
 
 /**
  * Export report in XML to debug report output.

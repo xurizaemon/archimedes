@@ -39,6 +39,7 @@ class ArchimedesDrupalUnsafeCollection {
    * Collect database storage metrics.
    */
   public function database_size() {
+    global $databases;
     $db_type = $databases['default']['default']['driver'];
     switch ($db_type) {
       case 'pgsql':
@@ -51,16 +52,35 @@ class ArchimedesDrupalUnsafeCollection {
         $this->archimedes
              ->createField('field_db_size', db_query("SELECT pg_database_size('" . $database_name . "')")->fetchField());
         break;
+
       case 'mysql':
       case 'mysqli':
         $rows = db_query('SHOW TABLE STATUS');
         $size = 0;
         foreach ($rows as $row) {
-          $size += ($row->data_length + $row->index_length);
+          foreach (array('data_length', 'Data_length', 'index_length', 'Index_length') as $value) {
+            if (isset($row->$value)) {
+              $size += $row->$value;
+            }
+          }
         }
-        $this->archimedes
-             ->createField('field_db_size', $size);
+        if ($size) {
+          $this->archimedes
+            ->createField('field_db_size', $size);
+        }
+        break;
+
+      case 'sqlite':
+        $page_count = db_query('PRAGMA page_count')->fetchField();
+        $page_size = db_query('PRAGMA page_size')->fetchField();
+        $size = $page_count * $page_size;
+        if ($size) {
+          $this->archimedes
+            ->createField('field_db_size', $size);
+        }
+
       break;
+
     }
     // Fail silently for other database types.
     return $this;
@@ -91,8 +111,7 @@ class ArchimedesDrupalUnsafeCollection {
     }
     $command = call_user_func_array('sprintf', $args);
 
-    exec($command . ' 2>&1', $output, $result);
-
+    exec($command . ' 2>/dev/null', $output, $result);
     return $output[0];
   }
 }
