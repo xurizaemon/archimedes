@@ -148,8 +148,10 @@ function archimedes_out() {
     $header = array('Themes','Version','Description');
     $themes = theme('table', array('header' => $header, 'rows' => $owl->getField('field_drupal_theme')->toArray()));
 
+    $extra = implode('', module_invoke_all('archimedes_out', $owl));
+
     $output = '<p>' . t('This page shows the current output from of Archimedes Client for this website. It will not necessarily match what is known by the server.'). '</p>';
-    return $output . $table . $modules . $themes;
+    return $output . $table . $extra . $modules . $themes;
   }
 }
 
