@@ -48,7 +48,8 @@ class_exists('Archimedes') || archimedes_load_library();
  * Produce a unique value to represent this instance of Drupal.
  */
 function archimedes_get_token() {
-  $keys = module_invoke_all('archimedes_id'); sort($keys);
+  $keys = module_invoke_all('archimedes_id');
+  sort($keys);
   return drupal_hmac_base64(implode('|', $keys), drupal_get_private_key() . drupal_get_hash_salt());
 }
 
